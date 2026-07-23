@@ -88,3 +88,7 @@ El agente está entrenado para responder consultas sobre la documentación carga
 
 **Respuesta del Agente:**
 "Según nuestro Protocolo de Seguridad, en caso de robo o pérdida del teléfono móvil, el cliente debe acceder a su sucursal web desde un computador seguro. Una vez allí, debe ingresar a la sección 'Seguridad > Mis Dispositivos' y proceder a desvincular forzosamente la sesión de la App móvil del teléfono extraviado."
+
+
+##**Link web del proyecto (alojamiento en Oracle Cloud)**
+* *http://161.153.217.56:8501/ 
