@@ -89,6 +89,22 @@ El agente está entrenado para responder consultas sobre la documentación carga
 **Respuesta del Agente:**
 "Según nuestro Protocolo de Seguridad, en caso de robo o pérdida del teléfono móvil, el cliente debe acceder a su sucursal web desde un computador seguro. Una vez allí, debe ingresar a la sección 'Seguridad > Mis Dispositivos' y proceder a desvincular forzosamente la sesión de la App móvil del teléfono extraviado."
 
+---
 
-##**Link web del proyecto (alojamiento en Oracle Cloud)**
+## 📸 Evidencia de Funcionamiento
+
+A continuación, se presentan las capturas que demuestran el correcto despliegue y la adaptabilidad de la interfaz en distintos dispositivos:
+
+### 1. Vista de la Aplicación en Computadora (Web)
+![Evidencia en PC Web](evidencias/evidenciaPcWeb.png)
+
+### 2. Vista Adaptable en Smartphone (Responsive)
+![Evidencia en Smartphone](evidencias/evidenciaSmartphone.jpg)
+
+### 3. Despliegue Activo en Servidor (Oracle Cloud)
+![Evidencia en Oracle Cloud](evidencias/evidenciaOracleCloud.png)
+
+---
+
+##**Link web para acceder al proyecto (alojamiento en Oracle Cloud)**
 * *http://161.153.217.56:8501/ 
