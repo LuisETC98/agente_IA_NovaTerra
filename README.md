@@ -1,110 +1,112 @@
-# 🏦 Asistente Interno RAG - Banco NovaTerra
+# 🏦 Portal Asistente Digital - Banco NovaTerra
 
 ## 📖 Descripción General
-Este proyecto consiste en un agente de Inteligencia Artificial (Chatbot) diseñado específicamente para el uso interno de los empleados y colaboradores del **Banco NovaTerra**. Su propósito es responder de manera rápida, precisa y segura a preguntas relacionadas con las políticas internas, tarifas, límites transaccionales y términos de servicio de la institución. 
+Portal oficial del **Banco NovaTerra**, diseñado con una interfaz moderna, limpia y de nivel empresarial para responder de manera rápida, precisa y segura consultas sobre normativas bancarias, tarifas, límites de transferencias, políticas de seguridad y ley de fraudes.
 
-El agente está construido bajo el paradigma **RAG (Generación Aumentada por Recuperación)**, lo que garantiza que las respuestas se basen estrictamente en la documentación oficial del banco, eliminando el riesgo de alucinaciones (inventar información).
-
----
-
-## 🏗️ Arquitectura de la Solución
-La solución implementa una arquitectura RAG estándar que consta de las siguientes fases:
-1. **Ingesta de Datos:** Carga de documentos oficiales en formato PDF utilizando `PyPDFDirectoryLoader`.
-2. **Procesamiento y División:** El texto se divide en fragmentos manejables mediante `RecursiveCharacterTextSplitter` para mantener el contexto semántico.
-3. **Incrustaciones (Embeddings):** Los fragmentos de texto se convierten en vectores numéricos usando el modelo multilenguaje de Cohere.
-4. **Base de Datos Vectorial:** Los vectores se almacenan localmente utilizando **FAISS**, permitiendo búsquedas de similitud ultrarrápidas.
-5. **Recuperación y Generación:** Al recibir una pregunta, el sistema busca los fragmentos más relevantes en FAISS y se los pasa al LLM de Cohere junto con un *Prompt* de sistema estricto para formular la respuesta final.
+La plataforma cuenta con una arquitectura desacoplada **Full-Stack**:
+- **Backend (API REST):** Desarrollado en Python con **FastAPI** y el motor de recuperación documental **LangChain + FAISS + Cohere**.
+- **Frontend (SPA):** Desarrollado en **React 18 + Vite**, con estilos utilitarios modernos en **Tailwind CSS**, iconografía en **Lucide React** y efectos interactivos (Mesh Gradients y Orbe Prisma Nova).
 
 ---
 
-## 🛠️ Tecnologías y Herramientas Utilizadas
+## 🏗️ Estructura del Proyecto
+
+```text
+agente_IA_NovaTerra/
+├── backend/
+│   ├── api.py                    # Servidor REST FastAPI (Endpoint POST /api/chat)
+│   ├── motor_rag.py              # Motor de inferencia y base vectorial FAISS
+│   ├── documentos/               # Documentos normativos oficiales en PDF
+│   └── requirements_backend.txt  # Dependencias Python
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx               # Aplicación interactiva React y comunicación con API
+│   │   ├── main.jsx              # Punto de entrada de la SPA
+│   │   └── index.css             # Configuración Tailwind CSS
+│   ├── index.html                # Plantilla HTML con tipografías Inter y Poppins
+│   ├── package.json              # Dependencias de Node.js
+│   ├── vite.config.js            # Configuración de Vite
+│   └── tailwind.config.js        # Configuración de Tailwind CSS
+├── api.py                        # Punto de entrada raíz alternativo para FastAPI
+├── requirements_backend.txt      # Requerimientos backend en la raíz
+└── README.md
+```
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+### Backend
 * **Lenguaje:** Python 3.12
-* **Interfaz de Usuario:** Streamlit
-* **Framework IA:** LangChain & LangChain Classic
-* **Modelo de Lenguaje (LLM):** Cohere (`command-r-08-2024` para generación y `embed-multilingual-v3.0` para embeddings).
-* **Base de Datos Vectorial:** FAISS (Meta)
-* **Gestión de Entorno:** `python-dotenv` para la carga segura de API Keys.
+* **Framework Web:** FastAPI & Uvicorn
+* **Framework IA:** LangChain & LangChain Community
+* **Embeddings & LLM:** Cohere (`embed-multilingual-v3.0` y `command-r-08-2024`)
+* **Base Vectorial:** FAISS (Facebook AI Similarity Search)
+* **Gestión de Entorno:** `python-dotenv`
+
+### Frontend
+* **Framework:** React 18+ con Vite
+* **Estilos:** Tailwind CSS 3 (Diseño responsivo, modo oscuro/claro, Glassmorphism y Mesh Gradients)
+* **Iconografía:** Lucide React
+* **Tipografía:** Inter y Poppins (Google Fonts)
 
 ---
 
-## 🚀 Instrucciones para Ejecutar el Proyecto (Local)
+## 🚀 Instrucciones para Levantar el Proyecto Localmente
 
-### 1. Clonar el repositorio y preparar archivos
-Asegúrate de tener una carpeta llamada `documentos` en la raíz del proyecto que contenga los PDFs oficiales del banco.
+### 1. Configuración del Backend (FastAPI)
 
-### 2. Crear y activar el entorno virtual
-Es altamente recomendable usar un entorno virtual para evitar conflictos de dependencias:
+1. Crear y activar el entorno virtual de Python:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate    # En Linux/Mac
+   # venv\Scripts\activate     # En Windows
+   ```
 
-`python -m venv venv`
+2. Instalar las dependencias del backend:
+   ```bash
+   pip install -r requirements_backend.txt
+   ```
 
-**Activar en Windows:**
-`venv\Scripts\activate`
+3. Configurar la clave de API en un archivo `.env`:
+   ```bash
+   COHERE_API_KEY=tu_clave_de_cohere_aqui
+   ```
 
-**Activar en Mac/Linux:**
-`source venv/bin/activate`
-
-### 3. Instalar dependencias
-Con el entorno virtual activado, instala los requerimientos:
-
-`pip install -r requirements.txt`
-
-### 4. Configurar Variables de Entorno
-Crea un archivo llamado `.env` en la raíz del proyecto y añade tu clave de API de Cohere:
-
-`COHERE_API_KEY=tu_clave_de_cohere_aqui`
-
-### 5. Ejecutar la Aplicación
-Inicia el servidor local de Streamlit:
-
-`streamlit run app.py`
-
-La aplicación se abrirá automáticamente en tu navegador web en `http://localhost:8501`.
+4. Iniciar el servidor backend:
+   ```bash
+   uvicorn api:app --reload
+   ```
+   *El servidor quedará disponible en:* `http://localhost:8000`  
+   *Documentación Swagger interactiva:* `http://localhost:8000/docs`
 
 ---
 
-## 💡 Ejemplos de Preguntas Soportadas
-El agente está entrenado para responder consultas sobre la documentación cargada. Puedes probar con las siguientes preguntas:
+### 2. Configuración del Frontend (React + Vite)
 
-* *"¿Cuál es la política de privacidad de la empresa y los derechos ARCO?"*
-* *"¿Cuáles son los límites diarios para transferencias de una persona natural nueva?"*
-* *"¿Cuánto se cobra de comisión por girar dinero en el extranjero?"*
-* *"¿Qué debo hacer si transfiero dinero a un RUT equivocado?"*
-* *"¿Cuáles son las causales para que el banco cierre unilateralmente una cuenta?"*
+1. Ingresar a la carpeta `frontend`:
+   ```bash
+   cd frontend
+   ```
 
----
+2. Instalar las dependencias de Node.js:
+   ```bash
+   npm install
+   ```
 
-## 🤖 Ejemplos de Respuestas Generadas por el Agente
-
-**Pregunta del usuario:**
-"¿Cuánto cuesta mantener la Tarjeta de Crédito Black?"
-
-**Respuesta del Agente:**
-"La Tarjeta de Crédito Black de Banco NovaTerra tiene un costo de mantención semestral de 3.0 UF. Cabe destacar que este costo es bonificable si se hace un uso frecuente de la tarjeta. Además, incluye beneficios como 6 accesos a salones VIP de aeropuertos."
-
----
-
-**Pregunta del usuario:**
-"¿Qué hago si un cliente pierde su teléfono móvil y tiene la App instalada?"
-
-**Respuesta del Agente:**
-"Según nuestro Protocolo de Seguridad, en caso de robo o pérdida del teléfono móvil, el cliente debe acceder a su sucursal web desde un computador seguro. Una vez allí, debe ingresar a la sección 'Seguridad > Mis Dispositivos' y proceder a desvincular forzosamente la sesión de la App móvil del teléfono extraviado."
+3. Iniciar el servidor de desarrollo Vite:
+   ```bash
+   npm run dev
+   ```
+   *La aplicación web estará disponible en:* `http://localhost:5173`
 
 ---
 
-## 📸 Evidencia de Funcionamiento
+## 💡 Consultas Soportadas por el Asistente
 
-A continuación, se presentan las capturas que demuestran el correcto despliegue y la adaptabilidad de la interfaz en distintos dispositivos:
-
-### 1. Vista de la Aplicación en Computadora (Web)
-![Evidencia en PC Web](evidencias/evidenciaPcWeb.png)
-
-### 2. Vista Adaptable en Smartphone (Responsive)
-![Evidencia en Smartphone](evidencias/evidenciaSmartphone.jpg)
-
-### 3. Despliegue Activo en Servidor (Oracle Cloud)
-![Evidencia en Oracle Cloud](evidencias/evidenciaOracleCloud.png)
-
----
-
-##**Link web para acceder al proyecto (alojamiento en Oracle Cloud)**
-* *http://161.153.217.56:8501/ 
+El asistente está respaldado por la documentación oficial vigente del banco:
+* **Protocolo Ley de Fraudes (Normativa N° 20.009):** Umbrales de 35 UF, plazos de restitución de 5 días hábiles y declaraciones juradas.
+* **Tarifario Internacional:** Comisiones por giros en el exterior (cajeros Plus/Cirrus) y exenciones del Plan Signature.
+* **Límites de Transferencias (Política TEF):** Límites de $250.000 para destinatarios nuevos en las primeras 24h y topes para cuentas Empresa y Pyme.
+* **Privacidad y Derechos ARCO:** Resguardo de datos por 5 años según la CMF y ejercicio de derechos de acceso y rectificación.
+* **Términos de Canales Digitales:** Protocolos de seguridad NovaPass y responsabilidades del titular.

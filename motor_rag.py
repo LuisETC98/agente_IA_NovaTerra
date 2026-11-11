@@ -13,28 +13,43 @@ from langchain_core.prompts import ChatPromptTemplate
 load_dotenv()
 
 def inicializar_agente():
-    # 1. Cargar documentos PDF desde la carpeta
-    loader = PyPDFDirectoryLoader("documentos")
-    documentos = loader.load()
-
-    # 2. Dividir los textos en fragmentos manejables
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, 
-        chunk_overlap=150
-    )
-    fragmentos = text_splitter.split_documents(documentos)
-
-    # 3. Crear Embeddings (usamos el modelo multilenguaje de Cohere vital para español)
+    # 1. Crear Embeddings (usamos el modelo multilenguaje de Cohere vital para español)
     embeddings = CohereEmbeddings(model="embed-multilingual-v3.0")
 
-    # 4. Almacenar en base de datos vectorial local (FAISS)
-    vectorstore = FAISS.from_documents(fragmentos, embeddings)
+    # 2. Cargar o crear la base de datos vectorial persistente (FAISS)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    faiss_dir = os.path.join(base_dir, "faiss_index")
+
+    # Si existe el índice en disco, cargarlo directamente en milisegundos
+    if os.path.exists(faiss_dir) and os.path.exists(os.path.join(faiss_dir, "index.faiss")):
+        vectorstore = FAISS.load_local(
+            faiss_dir,
+            embeddings,
+            allow_dangerous_deserialization=True
+        )
+    else:
+        # Cargar documentos PDF desde la carpeta
+        doc_dir = "documentos" if os.path.exists("documentos") else os.path.join(base_dir, "documentos")
+        loader = PyPDFDirectoryLoader(doc_dir)
+        documentos = loader.load()
+
+        # Dividir los textos en fragmentos manejables
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, 
+            chunk_overlap=150
+        )
+        fragmentos = text_splitter.split_documents(documentos)
+
+        # Crear y persistir la base de datos vectorial local (FAISS)
+        vectorstore = FAISS.from_documents(fragmentos, embeddings)
+        vectorstore.save_local(faiss_dir)
+
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
-    # 5. Configurar el LLM de Cohere
+    # 3. Configurar el LLM de Cohere
     llm = ChatCohere(model="command-r-08-2024", temperature=0.3)
 
-    # 6. Crear el Prompt del sistema
+    # 4. Crear el Prompt del sistema
     system_prompt = (
         "Eres el asistente virtual oficial del Banco NovaTerra. "
         "Tu tarea es responder preguntas de los empleados y colaboradores "
@@ -49,7 +64,7 @@ def inicializar_agente():
         ("human", "{input}")
     ])
 
-    # 7. Unir todo en una cadena (Chain)
+    # 5. Unir todo en una cadena (Chain)
     qa_chain = create_stuff_documents_chain(llm, prompt)
     rag_chain = create_retrieval_chain(retriever, qa_chain)
 
