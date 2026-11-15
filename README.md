@@ -100,6 +100,8 @@ agente_IA_NovaTerra/
    ```
    *La aplicación web estará disponible en:* `http://localhost:5173`
 
+   *URL para acceder desde el navegador:* http://161.153.217.56:5173/
+
 ---
 
 ## 💡 Consultas Soportadas por el Asistente
