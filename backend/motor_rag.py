@@ -4,6 +4,17 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_cohere import CohereEmbeddings, ChatCohere
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
+
+# Manejador seguro de deserialización para evitar conflictos entre versiones de Pydantic
+def _safe_document_setstate(self, state):
+    if isinstance(state, dict):
+        state.pop("__fields_set__", None)
+        state.pop("__pydantic_private__", None)
+        state.pop("__pydantic_extra__", None)
+    self.__dict__.update(state)
+
+Document.__setstate__ = _safe_document_setstate
 
 try:
     from langchain.chains import create_retrieval_chain
@@ -24,15 +35,21 @@ def inicializar_agente():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     faiss_dir = os.path.join(base_dir, "faiss_index")
 
-    # Si existe el índice en disco, cargarlo directamente en milisegundos
+    vectorstore = None
+    # Si existe el índice en disco, intentar cargarlo de forma segura
     if os.path.exists(faiss_dir) and os.path.exists(os.path.join(faiss_dir, "index.faiss")):
-        vectorstore = FAISS.load_local(
-            faiss_dir,
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
-    else:
-        # Cargar documentos PDF desde la carpeta
+        try:
+            vectorstore = FAISS.load_local(
+                faiss_dir,
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
+        except Exception as e:
+            print(f"[AVISO] Índice precomputado no compatible ({e}). Regenerando desde PDFs...")
+            vectorstore = None
+
+    # Si no existe o no pudo cargarse, generar a partir de los documentos PDF
+    if vectorstore is None:
         doc_dir = "documentos" if os.path.exists("documentos") else os.path.join(base_dir, "documentos")
         loader = PyPDFDirectoryLoader(doc_dir)
         documentos = loader.load()
@@ -46,7 +63,10 @@ def inicializar_agente():
 
         # Crear y persistir la base de datos vectorial local (FAISS)
         vectorstore = FAISS.from_documents(fragmentos, embeddings)
-        vectorstore.save_local(faiss_dir)
+        try:
+            vectorstore.save_local(faiss_dir)
+        except Exception:
+            pass
 
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
