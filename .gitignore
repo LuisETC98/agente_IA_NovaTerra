@@ -24,3 +24,8 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Índices vectoriales generados dinámicamente en runtime
+faiss_index/*.faiss
+faiss_index/*.pkl
+!faiss_index/.gitkeep

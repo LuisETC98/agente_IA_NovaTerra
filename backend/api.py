@@ -165,18 +165,20 @@ async def chat(request: ChatRequest):
         doc_referencia: Optional[DocumentoReferencia] = None
 
         for d in context_docs:
-            src = d.metadata.get("source", "")
+            metadata = getattr(d, "metadata", {}) if hasattr(d, "metadata") and isinstance(d.metadata, dict) else {}
+            src = metadata.get("source", "")
             filename = os.path.basename(src)
-            page_num = d.metadata.get("page", 0) + 1
+            page_num = metadata.get("page", 0) + 1
             meta = CATALOGO_DOCUMENTOS.get(filename, {
                 "id": "DOC-OFICIAL",
-                "title": filename.replace(".pdf", "").replace("_", " "),
+                "title": filename.replace(".pdf", "").replace("_", " ") if filename else "Normativa NovaTerra",
                 "code": "Normativa Vigente",
                 "tag": "Documento Oficial",
                 "updated": "Vigente 2026"
             })
             
-            clean_content = d.page_content.strip().replace("\n", " ")
+            raw_content = getattr(d, "page_content", "") or ""
+            clean_content = str(raw_content).strip().replace("\n", " ")
             snippet = clean_content[:260] + ("..." if len(clean_content) > 260 else "")
 
             fuentes.append(FuenteDocumento(
@@ -190,16 +192,19 @@ async def chat(request: ChatRequest):
         # Construir documento de referencia principal para el Drawer
         if context_docs:
             primary_chunk = context_docs[0]
-            p_filename = os.path.basename(primary_chunk.metadata.get("source", ""))
+            p_metadata = getattr(primary_chunk, "metadata", {}) if hasattr(primary_chunk, "metadata") and isinstance(primary_chunk.metadata, dict) else {}
+            p_src = p_metadata.get("source", "")
+            p_filename = os.path.basename(p_src)
             p_meta = CATALOGO_DOCUMENTOS.get(p_filename, {
                 "id": "DOC-OFICIAL",
-                "title": p_filename.replace(".pdf", "").replace("_", " "),
+                "title": p_filename.replace(".pdf", "").replace("_", " ") if p_filename else "Normativa NovaTerra",
                 "code": "Normativa Vigente",
                 "tag": "Documento Oficial",
                 "updated": "Vigente 2026"
             })
-            p_page = primary_chunk.metadata.get("page", 0) + 1
-            p_clean = primary_chunk.page_content.strip()
+            p_page = p_metadata.get("page", 0) + 1
+            p_raw = getattr(primary_chunk, "page_content", "") or ""
+            p_clean = str(p_raw).strip()
             p_snippet = p_clean[:320] + ("..." if len(p_clean) > 320 else "")
 
             doc_referencia = DocumentoReferencia(
@@ -220,6 +225,8 @@ async def chat(request: ChatRequest):
         )
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"[ERROR] Error procesando consulta en /api/chat: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -4,17 +4,6 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_cohere import CohereEmbeddings, ChatCohere
 from langchain_community.vectorstores import FAISS
-from langchain_core.documents import Document
-
-# Manejador seguro de deserialización para evitar conflictos entre versiones de Pydantic
-def _safe_document_setstate(self, state):
-    if isinstance(state, dict):
-        state.pop("__fields_set__", None)
-        state.pop("__pydantic_private__", None)
-        state.pop("__pydantic_extra__", None)
-    self.__dict__.update(state)
-
-Document.__setstate__ = _safe_document_setstate
 
 try:
     from langchain.chains import create_retrieval_chain
@@ -36,23 +25,37 @@ def inicializar_agente():
     faiss_dir = os.path.join(base_dir, "faiss_index")
 
     vectorstore = None
-    # Si existe el índice en disco, intentar cargarlo de forma segura
-    if os.path.exists(faiss_dir) and os.path.exists(os.path.join(faiss_dir, "index.faiss")):
+    # Si existe el índice en disco, intentar cargarlo y verificar su validez
+    if os.path.exists(faiss_dir) and os.path.exists(os.path.join(faiss_dir, "index.faiss")) and os.path.exists(os.path.join(faiss_dir, "index.pkl")):
         try:
-            vectorstore = FAISS.load_local(
+            candidate_vs = FAISS.load_local(
                 faiss_dir,
                 embeddings,
                 allow_dangerous_deserialization=True
             )
+            # Validar que los documentos se puedan buscar e inspeccionar correctamente
+            test_docs = candidate_vs.similarity_search("normativa", k=1)
+            if test_docs and hasattr(test_docs[0], "page_content") and test_docs[0].page_content:
+                vectorstore = candidate_vs
+                print("[INFO] Índice FAISS existente cargado y verificado correctamente.")
+            else:
+                print("[AVISO] El índice existente no contiene atributos válidos de Document. Se regenerará.")
         except Exception as e:
-            print(f"[AVISO] Índice precomputado no compatible ({e}). Regenerando desde PDFs...")
+            print(f"[AVISO] Índice precomputado no compatible o corrupto ({e}). Regenerando desde PDFs...")
             vectorstore = None
 
-    # Si no existe o no pudo cargarse, generar a partir de los documentos PDF
+    # Si no existe o no es compatible, generar a partir de los documentos PDF
     if vectorstore is None:
+        print("[INFO] Generando índice vectorial FAISS desde documentos PDF...")
         doc_dir = "documentos" if os.path.exists("documentos") else os.path.join(base_dir, "documentos")
+        if not os.path.exists(doc_dir):
+            parent_doc = os.path.join(os.path.dirname(base_dir), "documentos")
+            if os.path.exists(parent_doc):
+                doc_dir = parent_doc
+
         loader = PyPDFDirectoryLoader(doc_dir)
         documentos = loader.load()
+        print(f"[INFO] Se cargaron {len(documentos)} páginas de documentos desde '{doc_dir}'.")
 
         # Dividir los textos en fragmentos manejables
         text_splitter = RecursiveCharacterTextSplitter(
@@ -60,13 +63,16 @@ def inicializar_agente():
             chunk_overlap=150
         )
         fragmentos = text_splitter.split_documents(documentos)
+        print(f"[INFO] Generados {len(fragmentos)} fragmentos de texto para indexación.")
 
         # Crear y persistir la base de datos vectorial local (FAISS)
         vectorstore = FAISS.from_documents(fragmentos, embeddings)
         try:
+            os.makedirs(faiss_dir, exist_ok=True)
             vectorstore.save_local(faiss_dir)
-        except Exception:
-            pass
+            print(f"[INFO] Índice FAISS guardado exitosamente en: {faiss_dir}")
+        except Exception as save_err:
+            print(f"[ALERTA] No se pudo guardar el índice en disco ({save_err}), continuará en memoria.")
 
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
