@@ -14,9 +14,14 @@ COPY requirements_backend.txt .
 RUN pip install --no-cache-dir -r requirements_backend.txt
 
 # Copiar archivos de lógica del servidor y base de conocimiento RAG
+COPY backend/ ./backend/
 COPY api.py motor_rag.py ./
 COPY documentos/ ./documentos/
 COPY faiss_index/ ./faiss_index/
+
+# Asegurar que documentos e índices estén accesibles en ambas rutas
+RUN cp -r documentos backend/ 2>/dev/null || true && \
+    cp -r faiss_index backend/ 2>/dev/null || true
 
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
