@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 // URL del backend FastAPI (configurable vía variable de entorno o localhost por defecto)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:8000';
 
 // Base normativa oficial del banco (Lenguaje 100% corporativo y limpio)
 const DOCS = [

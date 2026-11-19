@@ -1,5 +1,24 @@
 # 🏦 Portal Asistente Digital - Banco NovaTerra
 
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](#)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](#)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](#)
+[![Vite](https://img.shields.io/badge/Vite-5.2-646CFF?logo=vite&logoColor=white)](#)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwind-css&logoColor=white)](#)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](#)
+[![SSL](https://img.shields.io/badge/SSL%2FTLS-Let's_Encrypt-003A70?logo=letsencrypt&logoColor=white)](#)
+
+---
+
+## 🌐 Acceso a la Aplicación en Producción
+
+La plataforma se encuentra desplegada y asegurada con certificado SSL/TLS en la nube de **Oracle Cloud Infrastructure (OCI)**:
+
+* **URL Oficial de Acceso:** [https://chatbot-novaterra.duckdns.org](https://chatbot-novaterra.duckdns.org)
+* **Backend Healthcheck:** `https://chatbot-novaterra.duckdns.org/api/health`
+
+---
+
 ## 📖 Descripción General
 Portal oficial del **Banco NovaTerra**, diseñado con una interfaz moderna, limpia y de nivel empresarial para responder de manera rápida, precisa y segura consultas sobre normativas bancarias, tarifas, límites de transferencias, políticas de seguridad y ley de fraudes.
 
@@ -101,6 +120,28 @@ agente_IA_NovaTerra/
    *La aplicación web estará disponible en:* `http://localhost:5173`
 
    *URL para acceder desde el navegador:* http://161.153.217.56:5173/
+
+---
+
+## 🐳 Despliegue con Docker y Docker Compose (Producción en OCI)
+
+El proyecto incluye soporte nativo para **Docker Compose** desacoplando el backend (FastAPI + RAG) y el frontend (Vite + Nginx):
+
+```bash
+# 1. Clonar el repositorio en la instancia de Ubuntu
+git clone <URL_DEL_REPOSITORIO>
+cd agente_IA_Novaterra
+
+# 2. Configurar variables de entorno de producción
+cp .env.example .env
+nano .env   # Agregar tu COHERE_API_KEY
+
+# 3. Construir y levantar los contenedores en segundo plano
+docker compose up -d --build
+
+# 4. Verificar estado de los contenedores
+docker compose ps
+```
 
 ---
 
